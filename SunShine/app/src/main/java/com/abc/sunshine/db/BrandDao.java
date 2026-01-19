@@ -5,7 +5,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.abc.sunshine.db.DatabaseHelper;
 import com.abc.sunshine.entity.Brand;
 
 import java.util.ArrayList;
@@ -13,112 +12,88 @@ import java.util.List;
 
 public class BrandDao {
 
-    private final DatabaseHelper dbHelper;
+    private DatabaseHelper dbHelper;
 
     public BrandDao(Context context) {
         dbHelper = new DatabaseHelper(context);
     }
 
-    // 1️⃣ INSERT
+    // 1. Insert a new brand
     public long insertBrand(Brand brand) {
-
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("name", brand.getName());
+        values.put("description", brand.getDescription());
 
-        ContentValues cv = new ContentValues();
-        cv.put("name", brand.getName());
-        cv.put("description", brand.getDescription());
-        cv.put("logo_url", brand.getLogoUrl());
-        cv.put("created_at", brand.getCreatedAt());
-        cv.put("updated_at", brand.getUpdatedAt());
-        cv.put("deleted", 0);
-
-        return db.insert(DatabaseHelper.TABLE_BRAND, null, cv);
+        long id = db.insert(DatabaseHelper.TABLE_BRAND, null, values);
+        db.close();
+        return id;
     }
 
-    // 2️⃣ GET ALL (not deleted)
-    public List<Brand> getAllBrands() {
+    // 4. Update a brand
+    public int updateBrand(long id, Brand brand) {
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("name", brand.getName());
+        values.put("description", brand.getDescription());
+        String[] arg = new String[]{String.valueOf(id)};
 
-        List<Brand> list = new ArrayList<>();
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        int rowsAffected = db.update(DatabaseHelper.TABLE_BRAND, values, "id=?", arg);
 
-        Cursor c = db.rawQuery(
-                "SELECT * FROM brands WHERE deleted = 0",
-                null
-        );
-
-        if (c.moveToFirst()) {
-            do {
-                Brand b = new Brand();
-                b.setId(c.getLong(c.getColumnIndexOrThrow("id")));
-                b.setName(c.getString(c.getColumnIndexOrThrow("name")));
-                b.setDescription(c.getString(c.getColumnIndexOrThrow("description")));
-                b.setLogoUrl(c.getString(c.getColumnIndexOrThrow("logo_url")));
-
-                list.add(b);
-            } while (c.moveToNext());
-        }
-
-        c.close();
-        return list;
+        db.close();
+        return rowsAffected;
     }
 
-    // 3️⃣ GET BY ID
+    // 2. Get a brand by ID
     public Brand getBrandById(long id) {
-
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor c = db.rawQuery(
-                "SELECT * FROM brands WHERE id = ?",
-                new String[]{String.valueOf(id)}
-        );
+        String[] arg = new String[]{String.valueOf(id)};
+        Cursor cursor = db.rawQuery("SELECT * FROM " + dbHelper.TABLE_BRAND + " WHERE id=?", arg);
 
-        if (c.moveToFirst()) {
-            Brand b = new Brand();
-            b.setId(c.getLong(c.getColumnIndexOrThrow("id")));
-            b.setName(c.getString(c.getColumnIndexOrThrow("name")));
-            b.setDescription(c.getString(c.getColumnIndexOrThrow("description")));
-            b.setLogoUrl(c.getString(c.getColumnIndexOrThrow("logo_url")));
-            c.close();
-            return b;
+        Brand brand = null;
+        if (cursor != null) {
+            if (cursor.moveToFirst()) {
+                brand = cursorToBrand(cursor); // populate brand using helper
+            }
+            cursor.close();
         }
-
-        c.close();
-        return null;
+        db.close();
+        return brand;
     }
 
-    // 4️⃣ UPDATE
-    public int updateBrand(Brand brand) {
+    // 3. Get all brands
+    public List<Brand> getAllBrands() {
+        List<Brand> brandList = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = db.rawQuery("SELECT * FROM " + DatabaseHelper.TABLE_BRAND, null);
 
-        SQLiteDatabase db = dbHelper.getWritableDatabase();
-        brand.touch(); // 🔥 updated_at auto update
-
-        ContentValues cv = new ContentValues();
-        cv.put("name", brand.getName());
-        cv.put("description", brand.getDescription());
-        cv.put("logo_url", brand.getLogoUrl());
-        cv.put("updated_at", brand.getUpdatedAt());
-
-        return db.update(
-                DatabaseHelper.TABLE_BRAND,
-                cv,
-                "id = ?",
-                new String[]{String.valueOf(brand.getId())}
-        );
+        if (cursor.moveToFirst()) {
+            do {
+                Brand brand = cursorToBrand(cursor); // populate from cursor
+                brandList.add(brand);               // add to list
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        db.close();
+        return brandList;
     }
 
-    // 5️⃣ DELETE (Soft delete)
+
     public int deleteBrand(long id) {
-
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-
-        ContentValues cv = new ContentValues();
-        cv.put("deleted", 1);
-
-        return db.update(
-                DatabaseHelper.TABLE_BRAND,
-                cv,
-                "id = ?",
-                new String[]{String.valueOf(id)}
-        );
+        return db.delete(dbHelper.TABLE_BRAND, "id=?", new String[]{String.valueOf(id)});
     }
-}
 
+
+
+    // 🔹 Cursor → Brand
+    private Brand cursorToBrand(Cursor c) {
+        Brand b = new Brand();
+        b.setId(c.getLong(c.getColumnIndexOrThrow("id")));
+        b.setName(c.getString(c.getColumnIndexOrThrow("name")));
+        b.setDescription(c.getString(c.getColumnIndexOrThrow("description")));
+        return b;
+    }
+
+
+}

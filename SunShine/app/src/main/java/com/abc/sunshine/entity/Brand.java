@@ -1,18 +1,28 @@
 package com.abc.sunshine.entity;
 
-public class Brand extends BaseEntity {
+import java.io.Serializable;
 
+public class Brand implements Serializable {
+
+    private Long id;
     private String name;
     private String description;
-    private String logoUrl;
 
     public Brand() {
     }
 
-    public Brand(String name, String description, String logoUrl) {
+    public Brand(String name, String description) {
         this.name = name;
         this.description = description;
-        this.logoUrl = logoUrl;
+    }
+
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public String getName() {
@@ -31,11 +41,5 @@ public class Brand extends BaseEntity {
         this.description = description;
     }
 
-    public String getLogoUrl() {
-        return logoUrl;
-    }
 
-    public void setLogoUrl(String logoUrl) {
-        this.logoUrl = logoUrl;
-    }
 }

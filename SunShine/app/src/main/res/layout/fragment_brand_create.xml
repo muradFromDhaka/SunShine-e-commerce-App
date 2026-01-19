@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp"
+    tools:context=".Drawer.fragmentEx.BrandCreateFragment">
+
+    <!-- Brand Name -->
+    <EditText
+        android:id="@+id/etBrandName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Brand Name"
+        android:inputType="textPersonName"
+        android:layout_marginBottom="12dp"/>
+
+    <!-- Brand Description -->
+    <EditText
+        android:id="@+id/etBrandDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Brand Description"
+        android:inputType="textMultiLine"
+        android:minLines="3"
+        android:gravity="top"
+        android:layout_marginBottom="20dp"/>
+
+    <!-- Save Button -->
+    <Button
+        android:id="@+id/btnSaveBrand"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Submit brand"/>
+
+</LinearLayout>
