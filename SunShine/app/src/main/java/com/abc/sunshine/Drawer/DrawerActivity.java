@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import com.abc.sunshine.Drawer.fragmentEx.AboutFragment;
 import com.abc.sunshine.Drawer.fragmentEx.BrandListFragment;
 import com.abc.sunshine.Drawer.fragmentEx.CategoryCreateFragment;
+import com.abc.sunshine.Drawer.fragmentEx.CategoryListFragment;
 import com.abc.sunshine.Drawer.fragmentEx.CustomerFragment;
 import com.abc.sunshine.Drawer.fragmentEx.HomeFragment;
 import com.abc.sunshine.Drawer.fragmentEx.InventoryFragment;
@@ -77,7 +78,7 @@ public class DrawerActivity extends AppCompatActivity {
                 fragment = new BrandListFragment();
             }else if(id== R.id.nav_category) {
                 Toast.makeText(this, "category Clicked", Toast.LENGTH_SHORT).show();
-                fragment = new CategoryCreateFragment();
+                fragment = new CategoryListFragment();
             }else if (id == R.id.nav_products) {
                 Toast.makeText(this, "products clicked", Toast.LENGTH_SHORT).show();
                 fragment = new ProductFragment();

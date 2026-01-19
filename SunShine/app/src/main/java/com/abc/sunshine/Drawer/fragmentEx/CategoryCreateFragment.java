@@ -8,6 +8,7 @@ import android.provider.MediaStore;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
@@ -19,9 +20,13 @@ import androidx.fragment.app.Fragment;
 
 import com.abc.sunshine.Drawer.DrawerActivity;
 import com.abc.sunshine.R;
+import com.abc.sunshine.db.BrandDao;
 import com.abc.sunshine.db.CategoryDao;
+import com.abc.sunshine.entity.Brand;
 import com.abc.sunshine.entity.Category;
 import com.squareup.picasso.Picasso;
+
+import java.util.List;
 
 public class CategoryCreateFragment extends Fragment {
 
@@ -34,6 +39,8 @@ public class CategoryCreateFragment extends Fragment {
 
     private Uri imageUri; // selected image uri
     private CategoryDao categoryDao;
+    private List<Brand> brandList;
+    private Category editCategory = null; // update mode
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -50,6 +57,23 @@ public class CategoryCreateFragment extends Fragment {
         btnSave = view.findViewById(R.id.btnSaveCategory);
 
         categoryDao = new CategoryDao(requireContext());
+        BrandDao brandDao = new BrandDao(requireContext());
+        brandList = brandDao.getAllBrands();
+
+        // spinner setup
+        ArrayAdapter<Brand> adapter = new ArrayAdapter<>(
+                requireContext(),
+                android.R.layout.simple_spinner_item,
+                brandList
+        );
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spBrand.setAdapter(adapter);
+
+        // 🔹 check if update mode
+        if (getArguments() != null && getArguments().containsKey("category")) {
+            editCategory = (Category) getArguments().getSerializable("category");
+            populateFields(editCategory);
+        }
 
         // pick image
         btnPickImage.setOnClickListener(v -> openGallery());
@@ -58,6 +82,27 @@ public class CategoryCreateFragment extends Fragment {
         btnSave.setOnClickListener(v -> saveCategory());
 
         return view;
+    }
+
+    // 🔹 Populate fields in update mode
+    private void populateFields(Category category) {
+        etName.setText(category.getName());
+        etDescription.setText(category.getDescription());
+        imageUri = Uri.parse(category.getImageUrl());
+        Picasso.get()
+                .load(imageUri)
+                .placeholder(R.drawable.placeholder)
+                .fit()
+                .centerCrop()
+                .into(ivImage);
+
+        // spinner select
+        for (int i = 0; i < brandList.size(); i++) {
+            if (brandList.get(i).getId() == category.getBrandId()) {
+                spBrand.setSelection(i);
+                break;
+            }
+        }
     }
 
     // 🔹 Open Gallery
@@ -86,42 +131,7 @@ public class CategoryCreateFragment extends Fragment {
         }
     }
 
-    // 🔹 Save Category
-//    private void saveCategory() {
-//        String name = etName.getText().toString().trim();
-//        String desc = etDescription.getText().toString().trim();
-//
-//        if (name.isEmpty()) {
-//            etName.setError("Required");
-//            return;
-//        }
-//
-//        if (imageUri == null) {
-//            Toast.makeText(getContext(), "Select image", Toast.LENGTH_SHORT).show();
-//            return;
-//        }
-//
-//        // 🔹 Brand id from spinner (assume spinner holds brandId)
-//        long brandId = spBrand.getSelectedItemId();
-//
-//        Category category = new Category();
-//        category.setName(name);
-//        category.setDescription(desc);
-//        category.setBrandId(brandId);
-//        category.setImageUrl(imageUri.toString());
-//
-//        categoryDao.insertCategory(category);
-//
-//        Toast.makeText(getContext(), "Category created", Toast.LENGTH_SHORT).show();
-//
-//        // 🔹 Go back to Category List
-//        requireActivity()
-//                .getSupportFragmentManager()
-//                .popBackStack();
-//    }
-
-
-    // 🔹 Save Category
+    // 🔹 Save or Update Category
     private void saveCategory() {
         String name = etName.getText().toString().trim();
         String desc = etDescription.getText().toString().trim();
@@ -136,19 +146,34 @@ public class CategoryCreateFragment extends Fragment {
             return;
         }
 
-        long brandId = spBrand.getSelectedItemId();
+        Brand selectedBrand = (Brand) spBrand.getSelectedItem();
+        if (selectedBrand == null) {
+            Toast.makeText(getContext(), "Select brand", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        Category category = new Category();
-        category.setName(name);
-        category.setDescription(desc);
-        category.setBrandId(brandId);
-        category.setImageUrl(imageUri.toString());
+        long brandId = selectedBrand.getId();
 
-        categoryDao.insertCategory(category);
+        if (editCategory != null) {
+            // 🔹 Update mode
+            editCategory.setName(name);
+            editCategory.setDescription(desc);
+            editCategory.setBrandId(brandId);
+            editCategory.setImageUrl(imageUri.toString());
+            categoryDao.updateCategory(editCategory); // make sure DAO has update method
+            Toast.makeText(getContext(), "Category updated", Toast.LENGTH_SHORT).show();
+        } else {
+            // 🔹 Insert mode
+            Category category = new Category();
+            category.setName(name);
+            category.setDescription(desc);
+            category.setBrandId(brandId);
+            category.setImageUrl(imageUri.toString());
+            categoryDao.insertCategory(category);
+            Toast.makeText(getContext(), "Category created", Toast.LENGTH_SHORT).show();
+        }
 
-        Toast.makeText(getContext(), "Category created", Toast.LENGTH_SHORT).show();
-
-        // ✅ এখানেই navigation set হবে
+        // 🔹 Go back to list
         requireActivity()
                 .getSupportFragmentManager()
                 .beginTransaction()
@@ -156,13 +181,10 @@ public class CategoryCreateFragment extends Fragment {
                 .commit();
     }
 
-
-
-
     @Override
     public void onResume() {
         super.onResume();
         ((DrawerActivity) requireActivity())
-                .setToolbarTitle("Create Category");
+                .setToolbarTitle(editCategory != null ? "Update Category" : "Create Category");
     }
 }

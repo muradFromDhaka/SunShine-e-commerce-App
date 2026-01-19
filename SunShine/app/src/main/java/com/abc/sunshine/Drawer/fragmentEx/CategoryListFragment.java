@@ -5,11 +5,13 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -40,13 +42,23 @@ public class CategoryListFragment extends Fragment {
 
         View view = inflater.inflate(R.layout.fragment_category_list, container, false);
 
-        recyclerView = view.findViewById(R.id.recyclerCategory);
-        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        Button goCategory = view.findViewById(R.id.goCategory);
+        recyclerView = view.findViewById(R.id.rvCategories);
+        recyclerView.setLayoutManager(new GridLayoutManager(requireContext(),2));
 
         categoryDao = new CategoryDao(requireContext());
         brandDao = new BrandDao(requireContext());
 
         loadCategories();
+
+
+        goCategory.setOnClickListener(v -> {
+            getParentFragmentManager().beginTransaction()
+                    .replace(R.id.fragment_container, new CategoryCreateFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
+
 
         return view;
     }

@@ -174,12 +174,12 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         Category category = categoryList.get(position);
 
         holder.name.setText(category.getName());
-        holder.description.setText(category.getDescription());
+//        holder.description.setText(category.getDescription());
 
         // 🔹 Brand name resolve
         String brandName = brandNames.get(category.getBrandId());
         holder.brandName.setText(
-                brandName != null ? brandName : "Unknown Brand"
+                brandName != null ? "Brand: " + brandName : "Unknown Brand"
         );
 
         // 🔹 Image handling (gallery / camera / url)
@@ -240,7 +240,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
             name = itemView.findViewById(R.id.tvCategoryName);
-            description = itemView.findViewById(R.id.tvCategoryDescription);
+//            description = itemView.findViewById(R.id.tvCategoryDescription);
             brandName = itemView.findViewById(R.id.tvBrandName);
             image = itemView.findViewById(R.id.ivCategoryImage);
         }
