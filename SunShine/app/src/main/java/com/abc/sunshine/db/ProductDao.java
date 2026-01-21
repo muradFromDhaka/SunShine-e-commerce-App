@@ -15,116 +15,132 @@ import java.util.List;
 
 public class ProductDao {
 
-    private DatabaseHelper dbHelper;
-    private Gson gson;
+    private final DatabaseHelper dbHelper;
+    private final Gson gson = new Gson();
 
     public ProductDao(Context context) {
         dbHelper = new DatabaseHelper(context);
-        gson = new Gson();
     }
 
-    // 1️⃣ Insert a new product
-    public long insert(Product product) {
+    // INSERT
+    public long insert(Product p) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+
         ContentValues cv = new ContentValues();
-        cv.put("name", product.getName());
-        cv.put("description", product.getDescription());
-        cv.put("price", product.getPrice());
-        cv.put("discount_price", product.getDiscountPrice());
-        cv.put("sku", product.getSku());
-        cv.put("reviews_count", product.getReviewsCount());
-        cv.put("quantity", product.getQuantity());
-        cv.put("categoryId", product.getCategoryId());
-        cv.put("brandId", product.getBrandId());
-        cv.put("image_urls", gson.toJson(product.getImageUrls())); // Convert list to JSON
-        cv.put("is_active", product.isActive() ? 1 : 0);
+        cv.put("name", p.getName());
+        cv.put("description", p.getDescription());
+        cv.put("price", p.getPrice());
+        cv.put("discount_price", p.getDiscountPrice()); // fix
+        cv.put("sku", p.getSku());
+        cv.put("reviews_count", p.getReviewsCount()); // fix
+        cv.put("quantity", p.getQuantity());
+        cv.put("categoryId", p.getCategoryId());
+        cv.put("brandId", p.getBrandId());
+        cv.put("image_urls", gson.toJson(p.getImageUrls())); // fix
+        cv.put("is_active", p.isActive() ? 1 : 0); // fix
 
         long id = db.insert(DatabaseHelper.TABLE_PRODUCT, null, cv);
         db.close();
         return id;
     }
 
-    // 2️⃣ Update an existing product
-    public int update(Product product) {
+    // UPDATE
+    public int update(Product p) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
+
         ContentValues cv = new ContentValues();
-        cv.put("name", product.getName());
-        cv.put("description", product.getDescription());
-        cv.put("price", product.getPrice());
-        cv.put("discount_price", product.getDiscountPrice());
-        cv.put("sku", product.getSku());
-        cv.put("reviews_count", product.getReviewsCount());
-        cv.put("quantity", product.getQuantity());
-        cv.put("categoryId", product.getCategoryId());
-        cv.put("brandId", product.getBrandId());
-        cv.put("image_urls", gson.toJson(product.getImageUrls()));
-        cv.put("is_active", product.isActive() ? 1 : 0);
+        cv.put("name", p.getName());
+        cv.put("description", p.getDescription());
+        cv.put("price", p.getPrice());
+        cv.put("discount_price", p.getDiscountPrice()); // fix
+        cv.put("sku", p.getSku());
+        cv.put("reviews_count", p.getReviewsCount()); // fix
+        cv.put("quantity", p.getQuantity());
+        cv.put("categoryId", p.getCategoryId());
+        cv.put("brandId", p.getBrandId());
+        cv.put("image_urls", gson.toJson(p.getImageUrls())); // fix
+        cv.put("is_active", p.isActive() ? 1 : 0); // fix
 
-        int rows = db.update(DatabaseHelper.TABLE_PRODUCT, cv, "id=?", new String[]{String.valueOf(product.getId())});
+        int rows = db.update(
+                DatabaseHelper.TABLE_PRODUCT,
+                cv,
+                "id=" + p.getId(),
+                null
+        );
+
         db.close();
         return rows;
     }
 
-    // 3️⃣ Delete a product by id
-    public int delete(long id) {
+    // DELETE
+    public void delete(long id) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
-        int rows = db.delete(DatabaseHelper.TABLE_PRODUCT, "id=?", new String[]{String.valueOf(id)});
+        db.execSQL("DELETE FROM products WHERE id=" + id);
         db.close();
-        return rows;
     }
 
-    // 4️⃣ Get a single product by id
+    // GET ALL
+    public List<Product> getAll() {
+        List<Product> list = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        Cursor c = db.rawQuery(
+                "SELECT * FROM products ORDER BY id DESC",
+                null
+        );
+
+        while (c.moveToNext()) {
+            list.add(cursorToProduct(c));
+        }
+
+        c.close();
+        db.close();
+        return list;
+    }
+
+    // GET BY ID
     public Product getById(long id) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.query(DatabaseHelper.TABLE_PRODUCT, null, "id=?", new String[]{String.valueOf(id)}, null, null, null);
-        Product product = null;
 
-        if (cursor != null && cursor.moveToFirst()) {
-            product = cursorToProduct(cursor);
-            cursor.close();
+        Cursor c = db.rawQuery(
+                "SELECT * FROM products WHERE id=" + id,
+                null
+        );
+
+        Product p = null;
+        if (c.moveToFirst()) {
+            p = cursorToProduct(c);
         }
+
+        c.close();
         db.close();
-        return product;
+        return p;
     }
 
-    // 5️⃣ Get all products
-    public List<Product> getAll() {
-        List<Product> productList = new ArrayList<>();
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        Cursor cursor = db.query(DatabaseHelper.TABLE_PRODUCT, null, null, null, null, null, "id DESC");
+    // Cursor → Product
+    private Product cursorToProduct(Cursor c) {
 
-        if (cursor != null && cursor.moveToFirst()) {
-            do {
-                Product product = cursorToProduct(cursor);
-                productList.add(product);
-            } while (cursor.moveToNext());
-            cursor.close();
-        }
-        db.close();
-        return productList;
-    }
-
-    // Helper method to convert Cursor to Product
-    private Product cursorToProduct(Cursor cursor) {
-        Product product = new Product();
-        product.setId(cursor.getLong(cursor.getColumnIndexOrThrow("id")));
-        product.setName(cursor.getString(cursor.getColumnIndexOrThrow("name")));
-        product.setDescription(cursor.getString(cursor.getColumnIndexOrThrow("description")));
-        product.setPrice(cursor.getDouble(cursor.getColumnIndexOrThrow("price")));
-        product.setDiscountPrice(cursor.getDouble(cursor.getColumnIndexOrThrow("discount_price")));
-        product.setSku(cursor.getString(cursor.getColumnIndexOrThrow("sku")));
-        product.setReviewsCount(cursor.getString(cursor.getColumnIndexOrThrow("reviews_count")));
-        product.setQuantity(cursor.getInt(cursor.getColumnIndexOrThrow("quantity")));
-        product.setCategoryId(cursor.getLong(cursor.getColumnIndexOrThrow("categoryId")));
-        product.setBrandId(cursor.getLong(cursor.getColumnIndexOrThrow("brandId")));
-
-        String imagesJson = cursor.getString(cursor.getColumnIndexOrThrow("image_urls"));
         Type listType = new TypeToken<List<String>>() {}.getType();
-        List<String> images = gson.fromJson(imagesJson, listType);
-        product.setImageUrls(images);
 
-        product.setActive(cursor.getInt(cursor.getColumnIndexOrThrow("is_active")) == 1);
-        return product;
+        Product p = new Product();
+        p.setId(c.getLong(c.getColumnIndexOrThrow("id")));
+        p.setName(c.getString(c.getColumnIndexOrThrow("name")));
+        p.setDescription(c.getString(c.getColumnIndexOrThrow("description")));
+        p.setPrice(c.getDouble(c.getColumnIndexOrThrow("price")));
+        p.setDiscountPrice(c.getDouble(c.getColumnIndexOrThrow("discount_price")));
+        p.setSku(c.getString(c.getColumnIndexOrThrow("sku")));
+        p.setReviewsCount(c.getInt(c.getColumnIndexOrThrow("reviews_count")));
+        p.setQuantity(c.getInt(c.getColumnIndexOrThrow("quantity")));
+        p.setCategoryId(c.getLong(c.getColumnIndexOrThrow("categoryId")));
+        p.setBrandId(c.getLong(c.getColumnIndexOrThrow("brandId")));
+        p.setImageUrls(
+                gson.fromJson(
+                        c.getString(c.getColumnIndexOrThrow("image_urls")),
+                        listType
+                )
+        );
+        p.setActive(c.getInt(c.getColumnIndexOrThrow("is_active")) == 1);
+
+        return p;
     }
 }
-

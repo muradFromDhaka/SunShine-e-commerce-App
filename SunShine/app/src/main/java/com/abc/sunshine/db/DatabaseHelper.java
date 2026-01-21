@@ -56,7 +56,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         "price REAL NOT NULL," +
                         "discount_price REAL," +
                         "sku TEXT," +
-                        "reviews_count TEXT," +
+                        "reviews_count INTEGER DEFAULT 0," +
                         "quantity INTEGER NOT NULL," +
                         "categoryId INTEGER NOT NULL," +
                         "brandId INTEGER NOT NULL," +

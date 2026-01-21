@@ -4,6 +4,7 @@ import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.RatingBar;
 import android.widget.TextView;
@@ -13,6 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.abc.sunshine.R;
 import com.abc.sunshine.entity.Product;
+import com.bumptech.glide.Glide;
 
 import java.util.List;
 
@@ -20,10 +22,20 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
 
     private Context context;
     private List<Product> productList;
+    private OnItemClickListener listener;
 
-    public ProductAdapter(Context context, List<Product> productList) {
+    // Interface for click events
+    public interface OnItemClickListener {
+        void onItemClick(Product product);
+        void onEditClick(Product product);
+        void onImageClick(Product product);
+        void onDeleteClick(Product product);
+    }
+
+    public ProductAdapter(Context context, List<Product> productList, OnItemClickListener listener) {
         this.context = context;
         this.productList = productList;
+        this.listener = listener;
     }
 
     @NonNull
@@ -42,13 +54,30 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         holder.tvName.setText(product.getName());
         holder.tvPrice.setText("৳ " + product.getPrice());
         holder.tvQuantity.setText("Stock: " + product.getQuantity());
-        holder.ratingBar.setRating(product.());
+        holder.tvReviews.setText("(" + product.getReviewsCount() + " reviews)");
+        holder.btnDelete.setOnClickListener(v -> listener.onDeleteClick(productList.get(position)));
 
-        // Image load (simple version)
-        // If you use Glide/Picasso later, this is the place
+        // Load first image using Glide
         if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
-            // example: Glide.with(context).load(product.getImageUrls().get(0)).into(holder.ivProduct);
+            Glide.with(context)
+                    .load(product.getImageUrls().get(0))
+                    .placeholder(R.drawable.ic_launcher_foreground)
+                    .into(holder.ivProduct);
+        } else {
+            holder.ivProduct.setImageResource(R.drawable.ic_launcher_foreground);
         }
+
+        // Click events
+        holder.itemView.setOnClickListener(v -> {
+            if (listener != null) listener.onItemClick(product);
+        });
+
+        holder.ivProduct.setOnClickListener(v -> {
+            if (listener != null) listener.onImageClick(product);
+        });
+
+        // Optional: Add edit button click (if exists in layout)
+        // holder.btnEdit.setOnClickListener(v -> listener.onEditClick(product));
     }
 
     @Override
@@ -56,12 +85,11 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
         return productList.size();
     }
 
-    // 🔽 ViewHolder
     static class ProductViewHolder extends RecyclerView.ViewHolder {
 
         ImageView ivProduct;
-        TextView tvName, tvPrice, tvQuantity;
-        RatingBar ratingBar;
+        TextView tvName, tvPrice, tvQuantity, tvReviews;
+        ImageButton btnDelete;
 
         public ProductViewHolder(@NonNull View itemView) {
             super(itemView);
@@ -70,7 +98,8 @@ public class ProductAdapter extends RecyclerView.Adapter<ProductAdapter.ProductV
             tvName = itemView.findViewById(R.id.tvProductName);
             tvPrice = itemView.findViewById(R.id.tvProductPrice);
             tvQuantity = itemView.findViewById(R.id.tvProductQuantity);
-            ratingBar = itemView.findViewById(R.id.ratingBar);
+            tvReviews = itemView.findViewById(R.id.tvProductReviews);
+            btnDelete = itemView.findViewById(R.id.btnDelete);
         }
     }
 }

@@ -15,12 +15,12 @@ import androidx.fragment.app.Fragment;
 
 import com.abc.sunshine.Drawer.fragmentEx.AboutFragment;
 import com.abc.sunshine.Drawer.fragmentEx.BrandListFragment;
-import com.abc.sunshine.Drawer.fragmentEx.CategoryCreateFragment;
 import com.abc.sunshine.Drawer.fragmentEx.CategoryListFragment;
 import com.abc.sunshine.Drawer.fragmentEx.CustomerFragment;
 import com.abc.sunshine.Drawer.fragmentEx.HomeFragment;
 import com.abc.sunshine.Drawer.fragmentEx.InventoryFragment;
-import com.abc.sunshine.Drawer.fragmentEx.ProductFragment;
+import com.abc.sunshine.Drawer.fragmentEx.ProductCreateFragment;
+import com.abc.sunshine.Drawer.fragmentEx.ProductListFragment;
 import com.abc.sunshine.Drawer.fragmentEx.ProfileFragment;
 import com.abc.sunshine.Drawer.fragmentEx.SettingsFragment;
 import com.abc.sunshine.Drawer.fragmentEx.VendorFragment;
@@ -72,7 +72,6 @@ public class DrawerActivity extends AppCompatActivity {
             }else if (id == R.id.nav_settings) {
                 Toast.makeText(this, "Settings clicked", Toast.LENGTH_SHORT).show();
                 fragment = new SettingsFragment();
-
             } else if (id == R.id.nav_brand) {
                 Toast.makeText(this, "Brand clicked", Toast.LENGTH_SHORT).show();
                 fragment = new BrandListFragment();
@@ -81,7 +80,7 @@ public class DrawerActivity extends AppCompatActivity {
                 fragment = new CategoryListFragment();
             }else if (id == R.id.nav_products) {
                 Toast.makeText(this, "products clicked", Toast.LENGTH_SHORT).show();
-                fragment = new ProductFragment();
+                fragment = new ProductListFragment();
             } else if (id == R.id.nav_inventory) {
                 Toast.makeText(this, "Inventory clicked", Toast.LENGTH_SHORT).show();
                 fragment = new InventoryFragment();
